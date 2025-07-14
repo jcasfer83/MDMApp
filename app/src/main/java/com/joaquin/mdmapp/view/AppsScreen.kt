@@ -1,18 +1,25 @@
 package com.joaquin.mdmapp.view
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,6 +30,7 @@ import androidx.navigation.NavController
 import com.joaquin.mdmapp.viewmodel.AppsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.joaquin.mdmapp.model.AppInfo
 
 @Composable
 fun AppsScreen(navController: NavController, viewModel: AppsViewModel = viewModel()) {
@@ -30,13 +38,33 @@ fun AppsScreen(navController: NavController, viewModel: AppsViewModel = viewMode
     val context = LocalContext.current
     val isLoading by viewModel.isLoading.collectAsState()
     val apps by viewModel.installedApps.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadInstalledApps(context)
-        viewModel.registerAppChangeReceiver(context)
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    DisposableEffect(context, viewModel) {
+        val appChangeReceiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                viewModel.loadInstalledApps(context)
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")
+        }
+        context.registerReceiver(appChangeReceiver, filter)
+        onDispose {
+            context.unregisterReceiver(appChangeReceiver)
+        }
+    }
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
 
         Spacer(modifier = Modifier.height(40.dp))
 
@@ -44,27 +72,41 @@ fun AppsScreen(navController: NavController, viewModel: AppsViewModel = viewMode
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (isLoading) {
-            androidx.compose.material3.CircularProgressIndicator()
-            Text("Cargando apps...")
-        } else {
-            LazyColumn {
-                items(apps) { app ->
-                    Row(modifier = Modifier.padding(8.dp)) {
-                        Image(
-                            painter = rememberAsyncImagePainter(app.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(app.name, style = MaterialTheme.typography.bodyLarge)
-                            Text("Package: ${app.packageName}", style = MaterialTheme.typography.bodySmall)
-                            Text("Version: ${app.versionName}", style = MaterialTheme.typography.bodySmall)
-                        }
+        when {
+            isLoading -> {
+                CircularProgressIndicator()
+                Text("Cargando apps...")
+            }
+            error != null -> {
+                Text("Error: $error", color = MaterialTheme.colorScheme.error)
+            }
+            apps.isEmpty() -> {
+                Text("No se encontraron aplicaciones.")
+            }
+            else -> {
+                LazyColumn {
+                    items(apps) { app ->
+                        AppItem(app = app)
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AppItem(app: AppInfo) {
+    Row(modifier = Modifier.padding(8.dp)) {
+        Image(
+            painter = rememberAsyncImagePainter(app.icon),
+            contentDescription = null,
+            modifier = Modifier.size(48.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(app.name, style = MaterialTheme.typography.bodyLarge)
+            Text("Package: ${app.packageName}", style = MaterialTheme.typography.bodySmall)
+            Text("Version: ${app.versionName}", style = MaterialTheme.typography.bodySmall)
         }
     }
 }

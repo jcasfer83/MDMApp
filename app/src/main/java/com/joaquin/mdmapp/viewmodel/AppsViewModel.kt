@@ -1,21 +1,20 @@
 package com.joaquin.mdmapp.viewmodel
 
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageManager
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joaquin.mdmapp.data.AppRepository
+import com.joaquin.mdmapp.data.DefaultAppRepository
 import com.joaquin.mdmapp.model.AppInfo
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class AppsViewModel : ViewModel() {
+class AppsViewModel(
+    private val appRepository: AppRepository = DefaultAppRepository()
+) : ViewModel() {
 
     private val _installedApps = MutableStateFlow<List<AppInfo>>(emptyList())
     val installedApps: StateFlow<List<AppInfo>> = _installedApps
@@ -23,52 +22,44 @@ class AppsViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+
     fun loadInstalledApps(context: Context) {
         viewModelScope.launch {
             _isLoading.emit(true)
+            _error.emit(null)
 
-            val pm: PackageManager = context.packageManager
+            try {
+                val allApps = appRepository.getInstalledApps(context)
 
-            val packages = withContext(Dispatchers.IO) {
-                pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            }
+                val batchSize = 20
+                val loadedApps = mutableListOf<AppInfo>()
+                var processedCount = 0
 
-            val loadedApps = mutableListOf<AppInfo>()
-            val batchSize = 20
-            var processedCount = 0
+                for (appInfo in allApps) {
+                    loadedApps.add(appInfo)
+                    processedCount++
 
-            for (it in packages) {
-                val name = it.loadLabel(pm).toString()
-                val packageName = it.packageName
-                val icon = it.loadIcon(pm)
-                val version = try {
-                    pm.getPackageInfo(packageName, 0).versionName ?: "Unknown"
-                } catch (e: Exception) {
-                    "Unknown"
+                    if (processedCount % batchSize == 0 || processedCount == allApps.size) {
+                        _installedApps.emit(loadedApps.toList())
+                        delay(50)
+                    }
                 }
 
-                loadedApps.add(AppInfo(name, packageName, version, icon))
-                processedCount++
-
-                if (processedCount % batchSize == 0 || processedCount == packages.size) {
-                    _installedApps.emit(loadedApps.sortedBy { app -> app.name }.toList())
-                    delay(50)
+                if (allApps.isNotEmpty() && processedCount < batchSize) {
+                    _installedApps.emit(loadedApps.toList())
+                } else if (allApps.isEmpty()) {
+                    _installedApps.emit(emptyList())
                 }
-            }
-            _isLoading.emit(false)
-        }
-    }
-    fun registerAppChangeReceiver(context: Context) {
-        val filter = IntentFilter().apply {
-            addAction(Intent.ACTION_PACKAGE_ADDED)
-            addAction(Intent.ACTION_PACKAGE_REMOVED)
-            addDataScheme("package")
-        }
 
-        context.registerReceiver(object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context?, intent: Intent?) {
-                loadInstalledApps(context)
+            } catch (e: Exception) {
+                Log.e("AppsViewModel", "Error al cargar las aplicaciones instaladas: ${e.message}", e)
+                _error.emit("Error al cargar las aplicaciones: ${e.localizedMessage ?: "Error desconocido"}")
+                _installedApps.emit(emptyList())
+            } finally {
+                _isLoading.emit(false)
             }
-        }, filter)
+        }
     }
 }

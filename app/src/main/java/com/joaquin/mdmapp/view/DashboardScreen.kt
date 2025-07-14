@@ -21,20 +21,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel = viewModel()) {
-    val context = LocalContext.current.applicationContext // Usar applicationContext para evitar leaks
+    val context = LocalContext.current.applicationContext
 
     LaunchedEffect(Unit) {
         viewModel.initMonitoring(context)
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.stopMonitoring(context)
-        }
-    }
-
     val batteryStatus by viewModel.batteryStatus.collectAsState()
     val networkStatus by viewModel.networkStatus.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     val deviceInfo = viewModel.getDeviceInfo()
     val storageInfo = viewModel.getStorageInfo()
@@ -61,6 +56,11 @@ fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel 
         Text("Connectivity: $networkStatus")
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        error?.let {
+            Text("Error: $it", color = MaterialTheme.colorScheme.error)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         Button(onClick = { navController.navigate("apps") }) {
             Text("View Installed Apps")
