@@ -26,14 +26,15 @@ import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun AppsScreen(navController: NavController, viewModel: AppsViewModel = viewModel()) {
+
     val context = LocalContext.current
+    val isLoading by viewModel.isLoading.collectAsState()
+    val apps by viewModel.installedApps.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.registerAppChangeReceiver(context)
         viewModel.loadInstalledApps(context)
+        viewModel.registerAppChangeReceiver(context)
     }
-
-    val apps by viewModel.installedApps.collectAsState()
 
     Column(modifier = Modifier.padding(16.dp)) {
 
@@ -43,22 +44,29 @@ fun AppsScreen(navController: NavController, viewModel: AppsViewModel = viewMode
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyColumn {
-            items(apps) { app ->
-                Row(modifier = Modifier.padding(8.dp)) {
-                    Image(
-                        painter = rememberAsyncImagePainter(app.icon),
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(app.name, style = MaterialTheme.typography.bodyLarge)
-                        Text("Package: ${app.packageName}", style = MaterialTheme.typography.bodySmall)
-                        Text("Version: ${app.versionName}", style = MaterialTheme.typography.bodySmall)
+        if (isLoading) {
+            androidx.compose.material3.CircularProgressIndicator()
+            Text("Cargando apps...")
+        } else {
+            LazyColumn {
+                items(apps) { app ->
+                    Row(modifier = Modifier.padding(8.dp)) {
+                        Image(
+                            painter = rememberAsyncImagePainter(app.icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(app.name, style = MaterialTheme.typography.bodyLarge)
+                            Text("Package: ${app.packageName}", style = MaterialTheme.typography.bodySmall)
+                            Text("Version: ${app.versionName}", style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             }
         }
     }
 }
+
+

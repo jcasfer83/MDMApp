@@ -8,9 +8,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.joaquin.mdmapp.viewmodel.DashboardViewModel
@@ -18,8 +21,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel = viewModel()) {
+    val context = LocalContext.current.applicationContext // Usar applicationContext para evitar leaks
+
+    LaunchedEffect(Unit) {
+        viewModel.initMonitoring(context)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopMonitoring(context)
+        }
+    }
+
     val batteryStatus by viewModel.batteryStatus.collectAsState()
     val networkStatus by viewModel.networkStatus.collectAsState()
+
     val deviceInfo = viewModel.getDeviceInfo()
     val storageInfo = viewModel.getStorageInfo()
 
@@ -37,7 +53,7 @@ fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel 
 
         Text("Battery Status:", style = MaterialTheme.typography.titleLarge)
         Text("Level: ${batteryStatus.level}%")
-        Text("Charging: ${batteryStatus.isCharging}")
+        Text("Charging: ${if (batteryStatus.isCharging) "Sí" else "No"}")
 
         Spacer(modifier = Modifier.height(16.dp))
 
