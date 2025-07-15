@@ -14,10 +14,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.joaquin.mdmapp.viewmodel.DashboardViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.joaquin.mdmapp.R
 
 @Composable
 fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel = viewModel()) {
@@ -32,38 +34,38 @@ fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel 
     val error by viewModel.error.collectAsState()
 
     val deviceInfo = viewModel.getDeviceInfo()
-    val storageInfo = viewModel.getStorageInfo()
+    val storageInfo = viewModel.getStorageInfo(context)
 
     Column(modifier = Modifier.padding(16.dp)) {
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Text("Device Info:", style = MaterialTheme.typography.titleLarge)
-        Text("Model: ${deviceInfo.model}")
-        Text("Manufacturer: ${deviceInfo.manufacturer}")
-        Text("OS Version: ${deviceInfo.osVersion}")
-        Text("Available Storage: $storageInfo")
+        Text(stringResource(id = R.string.terminal_info_title), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(id = R.string.device_model, deviceInfo.model))
+        Text(stringResource(id = R.string.device_manufacturer, deviceInfo.manufacturer))
+        Text(stringResource(id = R.string.device_os_version, deviceInfo.osVersion))
+        Text(stringResource(id = R.string.storage_available, storageInfo))
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Battery Status:", style = MaterialTheme.typography.titleLarge)
-        Text("Level: ${batteryStatus.level}%")
-        Text("Charging: ${if (batteryStatus.isCharging) "Sí" else "No"}")
+        Text(stringResource(id = R.string.battery_status_title), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(id = R.string.battery_level, batteryStatus.level))
+        Text(stringResource(id = R.string.battery_charging, if (batteryStatus.isCharging) stringResource(id = R.string.yes) else stringResource(id = R.string.no)))
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Network Status:", style = MaterialTheme.typography.titleLarge)
-        Text("Connectivity: $networkStatus")
+        Text(stringResource(id = R.string.network_status_title), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(id = R.string.network_connectivity, networkStatus))
 
         Spacer(modifier = Modifier.height(16.dp))
 
         error?.let {
-            Text("Error: $it", color = MaterialTheme.colorScheme.error)
+            Text(stringResource(id = R.string.error_message, it), color = MaterialTheme.colorScheme.error)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         Button(onClick = { navController.navigate("apps") }) {
-            Text("View Installed Apps")
+            Text(stringResource(id = R.string.installed_applications_button))
         }
     }
 }

@@ -25,11 +25,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.joaquin.mdmapp.viewmodel.AppsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.joaquin.mdmapp.R
 import com.joaquin.mdmapp.model.AppInfo
 
 @Composable
@@ -68,20 +70,20 @@ fun AppsScreen(navController: NavController, viewModel: AppsViewModel = viewMode
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Text("Installed Applications", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(id = R.string.installed_applications_title), style = MaterialTheme.typography.titleLarge)
 
         Spacer(modifier = Modifier.height(8.dp))
 
         when {
             isLoading -> {
                 CircularProgressIndicator()
-                Text("Cargando apps...")
+                Text(stringResource(id = R.string.loading_applications))
             }
             error != null -> {
-                Text("Error: $error", color = MaterialTheme.colorScheme.error)
+                Text(stringResource(id = R.string.error_prefix), color = MaterialTheme.colorScheme.error)
             }
             apps.isEmpty() -> {
-                Text("No se encontraron aplicaciones.")
+                Text(stringResource(id = R.string.no_applications_found))
             }
             else -> {
                 LazyColumn {
@@ -105,8 +107,8 @@ fun AppItem(app: AppInfo) {
         Spacer(modifier = Modifier.width(8.dp))
         Column {
             Text(app.name, style = MaterialTheme.typography.bodyLarge)
-            Text("Package: ${app.packageName}", style = MaterialTheme.typography.bodySmall)
-            Text("Version: ${app.versionName}", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(id = R.string.package_) + app.packageName, style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(id = R.string.version) + app.versionName, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

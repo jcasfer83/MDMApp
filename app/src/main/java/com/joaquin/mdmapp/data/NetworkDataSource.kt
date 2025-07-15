@@ -64,9 +64,9 @@ class AndroidNetworkDataSource : NetworkDataSource {
         awaitClose {
             try {
                 connectivityManager.unregisterNetworkCallback(networkCallback)
-                Log.d("NetworkDataSource", "NetworkCallback desregistrado.")
+                Log.d("NetworkDataSource", "NetworkCallback retirado del registro.")
             } catch (e: IllegalArgumentException) {
-                Log.e("NetworkDataSource", "Error al desregistrar NetworkCallback: ${e.message}")
+                Log.e("NetworkDataSource", "Error al retirar del registro NetworkCallback: ${e.message}")
             }
         }
     }.distinctUntilChanged()

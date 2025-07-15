@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">MDMApp</string>
+    <string name="installed_applications_title">Aplicaciones instaladas</string>
+    <string name="loading_applications">Cargando aplicaciones …</string>
+    <string name="error_prefix">Error: %s</string>
+    <string name="no_applications_found">No se encontraron aplicaciones.</string>
+    <string name="package_">Paquete: </string>
+    <string name="version">Versión: </string>
+    <string name="terminal_info_title">Información del terminal:</string>
+    <string name="device_model">Modelo: %s</string>
+    <string name="device_manufacturer">Fabricante: %s</string>
+    <string name="device_os_version">Versión de SO: %s</string>
+    <string name="storage_available">Almacenamiento disponible: %s</string>
+    <string name="battery_status_title">Estado de la batería:</string>
+    <string name="battery_level">Nivel de carga: %d%%</string>
+    <string name="battery_charging">Cargando: %s</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+    <string name="network_status_title">Estado de la red:</string>
+    <string name="network_connectivity">Conectividad: %s</string>
+    <string name="error_message">Error: %s</string>
+    <string name="installed_applications_button">Aplicaciones instaladas</string>
+
 </resources>

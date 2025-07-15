@@ -18,10 +18,29 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    //TODO: Hacer dos buildVariants y ofuscar la de release
+    signingConfigs {
+        create("releaseConfig") {
+            storeFile = file(project.findProperty("KEYSTORE_PATH") as String)
+            storePassword = project.findProperty("KEYSTORE_PASSWORD") as String
+            keyAlias = project.findProperty("KEY_ALIAS") as String
+            keyPassword = project.findProperty("KEY_PASSWORD") as String
+        }
+    }
     buildTypes {
         release {
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("releaseConfig")
+        }
+        debug {
+            isDebuggable = true
             isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

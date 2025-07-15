@@ -3,6 +3,7 @@ package com.joaquin.mdmapp.viewmodel
 import android.content.Context
 import android.os.Build
 import android.os.Environment
+import android.os.storage.StorageManager
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -39,9 +40,20 @@ class DashboardViewModel(
         )
     }
 
-    fun getStorageInfo(): String {
-        val usable = Environment.getDataDirectory().usableSpace
-        return "${usable / (1024 * 1024)} MB"
+    fun getStorageInfo(context: Context): String {
+        val bytes: Long = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+            try {
+                val uuid = storageManager.getUuidForPath(context.filesDir)
+                storageManager.getAllocatableBytes(uuid)
+            } catch (e: Exception) {
+                Log.e("DashboardViewModel", "Error al obtener espacio de almacenamiento: ${e.message}", e)
+                Environment.getDataDirectory().usableSpace
+            }
+        } else {
+            Environment.getDataDirectory().usableSpace
+        }
+        return "${bytes / (1024 * 1024)} MB"
     }
 
     fun initMonitoring(context: Context) {
