@@ -63,6 +63,12 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.12"
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -77,14 +83,33 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.firebase.storage.ktx)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
+
+    //Local unit tests
+    testImplementation(libs.androidx.core)
+    testImplementation(libs.junit)
+    testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.truth)
+    testImplementation(libs.mockwebserver)
+    testImplementation(libs.mockk)
+    testImplementation(libs.ui.test.manifest)
+    testImplementation(libs.mockito.core)
+    testImplementation (libs.mockito.kotlin)
+    testImplementation(libs.robolectric)
+    testImplementation(kotlin("test"))
+
+    // Instrumetation tests
+    androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.junit2)
+    androidTestImplementation(libs.kotlinx.coroutines.test.v164)
+    androidTestImplementation(libs.androidx.core.testing)
+    androidTestImplementation(libs.goggle.truth)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.mockwebserver.v4100)
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.androidx.espresso.core)
 
 }
